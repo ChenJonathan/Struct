@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, json, jsonify, redirect
 import json
 from colour import Color
+import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
@@ -43,8 +45,48 @@ class FileMap:
 repo_map = {}
 
 def init_file_map(repo_author, repo_name):
+    branch = 'master'
     repo_map[(repo_author, repo_name)] = FileMap(repo_author, repo_name)
-    # TODO everything
+
+    # define functions
+    # return list of file paths in a directory
+    def get_list(url) :
+        ret_list = []
+        response = requests.get(url).text
+        soup = BeautifulSoup(response)
+        for file_tree in soup.find_all('table', class_='files js-navigation-container js-active-navigation-container') :
+            for tbody in file_tree.find_all('tbody') :
+                for link in tbody.find_all('a') :
+                    link_list = link.get('href')
+                    if '/commit/' not in link_list :
+                        ret_list.append(link_list)
+        return ret_list
+
+    # check if file is legit TODO
+    def check_file_content(base, path) :
+        response = requests.get(base + path).text
+        return True
+
+    # create map by performing dfs search on root Github directory
+    def dfs_util(base, path, stack) :
+        if '/blob/' in (path) :
+            if check_file_content(base, path) :
+                sub_path = path.rsplit("/", 1)[0]
+                name = path.rsplit("/", 1)[1]
+                repo_map[(repo_author, repo_name)].add_file(sub_path, name)
+        elif '/tree/' in (path):
+            uri = base + path
+            dir_list = get_list(uri)
+            for item in dir_list :
+                stack.append(item)
+                dfs_util(base, item, stack)
+                stack.pop()
+
+    # create repo_map
+    base = "https://github.com"
+    path = "/" + repo_author + "/" + repo_name + "/" + "tree/" + branch
+    stack = []
+    dfs_util(base, path, stack)
 
 def get_file_map(repo_author, repo_name):
     repo = (repo_author, repo_name)
