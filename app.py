@@ -23,10 +23,16 @@ class FileMap:
         self.tag_colors = {}
 
     def get_file(self, file_id):
-        return self.files[file_id]
+        return self.files[file_id] if file_id < len(self.files) else None
 
     def add_file(self, path, name):
-        # TODO check for duplicate
+        index = 0
+        while index < len(self.files):
+            current = self.files[index]
+            if current != None and current.path == path and current.name == name:
+                return index
+            index += 1
+
         file = File(path, name)
         index = 0
         while index < len(self.files) and self.files[index] != None:
@@ -156,9 +162,11 @@ def remove_file(repo_author, repo_name):
 
 @app.route('/api/<repo_author>/<repo_name>/edge', methods=['POST'])
 def add_edge(repo_author, repo_name):
-    # TODO check nodes exist
     file_map = get_file_map(repo_author, repo_name)
     edge = request.json
+    if not file_map.get_file(edge['source']) or not file_map.get_file(edge['target']):
+        return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
+
     file_map.edges.append((edge['source'], edge['target']))
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
@@ -171,9 +179,11 @@ def remove_edge(repo_author, repo_name):
 
 @app.route('/api/<repo_author>/<repo_name>/file/<file_id>/tag/<tag>', methods=['PUT'])
 def set_file_tag(repo_author, repo_name, file_id, tag):
-    # TODO check node exists
     file_map = get_file_map(repo_author, repo_name)
     file = file_map.get_file(int(file_id))
+    if not file:
+        return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
+
     file.tag = tag
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
