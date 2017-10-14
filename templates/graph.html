@@ -2,107 +2,55 @@
 <html>
 
 <head>
-  <!-- Bootstrap -->
-  <link rel="stylesheet" type="text/css" href="../static/bootstrap.css">
-  <link rel="stylesheet" href="../static/graph-creator.css" />
-  <link rel="stylesheet" href="../static/d3-context-menu.css" />
-  
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="../static/bootstrap.css">
+    <link rel="stylesheet" href="../static/graph-creator.css" />
+    <link rel="stylesheet" href="../static/d3-context-menu.css" />
+
 </head>
 
 <body>
-  <div id="graph">
-    <div id="legend">
-      LEGEND
-      <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-                <span class="caret"></span></button>
-          <ul class="dropdown-menu">
-            <li><a href="#">HTML</a></li>
-            <li><a href="#">CSS</a></li>
-            <li><a href="#">JavaScript</a></li>
-          </ul>
+    <div id="graph">
+        <div id="legend">
+            Tags Legend
+            <div class="input-color">
+                <input type="text" value="Tag 1" />
+                <div class="color-box" style="background-color: red;"></div>
+            </div>
+            <div class="input-color">
+                <input type="text" value="Tag 2" />
+                <div class="color-box" style="background-color: blue;"></div>
+            </div>
+            <div class="input-color">
+                <input type="text" value="Tag 3" />
+                <div class="color-box" style="background-color: green;"></div>
+            </div>
+            <div class="input-color">
+                <input type="text" value="Tag 4" />
+                <div class="color-box" style="background-color: purple;"></div>
+            </div>
+            <div class="input-color">
+                <input type="text" value="Tag 5" />
+                <div class="color-box" style="background-color: orange"></div>
+            </div>
         </div>
-      <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-              <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#">HTML</a></li>
-          <li><a href="#">CSS</a></li>
-          <li><a href="#">JavaScript</a></li>
-        </ul>
-      </div>
-      <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-                <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#">HTML</a></li>
-          <li><a href="#">CSS</a></li>
-          <li><a href="#">JavaScript</a></li>
-        </ul>
-      </div>
-      <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-                <span class="caret"></span></button>
-          <ul class="dropdown-menu">
-            <li><a href="#">HTML</a></li>
-            <li><a href="#">CSS</a></li>
-            <li><a href="#">JavaScript</a></li>
-          </ul>
+        <div id="toolbox">
+            <input type="file" id="hidden-file-upload">
+            <input id="upload-input" type="image" title="upload graph" src="upload-icon.png" alt="upload graph">
+            <input type="image" id="download-input" title="download graph" src="download-icon.png" alt="download graph">
+            <input type="image" id="delete-graph" title="delete graph" src="trash-icon.png" alt="delete graph">
         </div>
-      <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-              <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#">HTML</a></li>
-          <li><a href="#">CSS</a></li>
-          <li><a href="#">JavaScript</a></li>
-        </ul>
-      </div>
-      <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-                <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#">HTML</a></li>
-          <li><a href="#">CSS</a></li>
-          <li><a href="#">JavaScript</a></li>
-        </ul>
-      </div>
-      <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-                  <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#">HTML</a></li>
-          <li><a href="#">CSS</a></li>
-          <li><a href="#">JavaScript</a></li>
-        </ul>
-      </div>
-      <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
-                    <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#">HTML</a></li>
-          <li><a href="#">CSS</a></li>
-          <li><a href="#">JavaScript</a></li>
-        </ul>
-      </div>
     </div>
-    <div id="toolbox">
-      <input type="file" id="hidden-file-upload">
-      <input id="upload-input" type="image" title="upload graph" src="upload-icon.png" alt="upload graph">
-      <input type="image" id="download-input" title="download graph" src="download-icon.png" alt="download graph">
-      <input type="image" id="delete-graph" title="delete graph" src="trash-icon.png" alt="delete graph">
-    </div>
-  </div>
 
-  <script src="../static/jquery.min.js"></script>
-  <script src="../static/bootstrap.min.js"></script>
-  <script src="//d3js.org/d3.v3.js" charset="utf-8"></script>
-  <script src="//cdn.jsdelivr.net/filesaver.js/0.1/FileSaver.min.js"></script>
-  <script src="../static/d3-context-menu.js"></script>    
-  <script src="../static/graph-creator.js"></script>  
-  <script src="../static/click.js"></script>
-  
-  
+    <script src="../static/jquery.min.js"></script>
+    <script src="../static/bootstrap.min.js"></script>
+    <script src="//d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="//cdn.jsdelivr.net/filesaver.js/0.1/FileSaver.min.js"></script>
+    <script src="../static/d3-context-menu.js"></script>
+    <script src="../static/graph-creator.js"></script>
+    <script src="../static/click.js"></script>
+
+
 </body>
 
 </html>
