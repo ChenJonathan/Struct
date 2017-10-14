@@ -163,11 +163,13 @@ def remove_file(repo_author, repo_name, repo_branch):
 def add_edge(repo_author, repo_name, repo_branch):
     file_map = get_file_map(repo_author, repo_name, repo_branch)
     edge = request.json
-    if not file_map.get_file(edge['source']) or not file_map.get_file(edge['target']):
+    edge = (edge['source'], edge['target'])
+    if not file_map.get_file(edge[0]) or not file_map.get_file(edge[1]):
         return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
 
-    # TODO check edge already exists
-    file_map.edges.append((edge['source'], edge['target']))
+    if edge in file_map.edges:
+        return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
+    file_map.edges.append(edge)
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/edge', methods=['DELETE'])
