@@ -15,9 +15,10 @@ class File:
 
 class FileMap:
 
-    def __init__(self, author, name):
+    def __init__(self, author, name, branch):
         self.author = author
         self.name = name
+        self.branch = branch
         self.files = []
         self.edges = []
         self.tag_colors = {}
@@ -50,16 +51,14 @@ class FileMap:
 # Map of repos to file map objects
 repo_map = {}
 
-def init_file_map(repo_author, repo_name):
-    branch = 'master'
-    repo_map[(repo_author, repo_name)] = FileMap(repo_author, repo_name)
+def init_file_map(repo_author, repo_name, repo_branch):
+    repo_map[(repo_author, repo_name, repo_branch)] = FileMap(repo_author, repo_name, repo_branch)
 
-    # define functions
     # return list of file paths in a directory
     def get_list(url) :
         ret_list = []
         response = requests.get(url).text
-        soup = BeautifulSoup(response)
+        soup = BeautifulSoup(response, 'html.parser')
         for file_tree in soup.find_all('table', class_='files js-navigation-container js-active-navigation-container') :
             for tbody in file_tree.find_all('tbody') :
                 for link in tbody.find_all('a') :
@@ -79,7 +78,7 @@ def init_file_map(repo_author, repo_name):
             if check_file_content(base, path) :
                 sub_path = path.rsplit("/", 1)[0]
                 name = path.rsplit("/", 1)[1]
-                repo_map[(repo_author, repo_name)].add_file(sub_path, name)
+                repo_map[(repo_author, repo_name, repo_branch)].add_file(sub_path, name)
         elif '/tree/' in (path):
             uri = base + path
             dir_list = get_list(uri)
@@ -90,14 +89,14 @@ def init_file_map(repo_author, repo_name):
 
     # create repo_map
     base = "https://github.com"
-    path = "/" + repo_author + "/" + repo_name + "/" + "tree/" + branch
+    path = "/" + repo_author + "/" + repo_name + "/tree/" + repo_branch
     stack = []
     dfs_util(base, path, stack)
 
-def get_file_map(repo_author, repo_name):
-    repo = (repo_author, repo_name)
+def get_file_map(repo_author, repo_name, repo_branch):
+    repo = (repo_author, repo_name, repo_branch)
     if not repo in repo_map:
-        init_file_map(repo_author, repo_name)
+        init_file_map(repo_author, repo_name, repo_branch)
     return repo_map[repo]
 
 ###########
@@ -112,9 +111,9 @@ def route_index():
 def route_struct():
     return render_template('graph.html', title='Struct Graph')
 
-@app.route('/api/<repo_author>/<repo_name>')
-def get_repo(repo_author, repo_name):
-    file_map = get_file_map(repo_author, repo_name)
+@app.route('/api/<repo_author>/<repo_name>/<repo_branch>')
+def get_repo(repo_author, repo_name, repo_branch):
+    file_map = get_file_map(repo_author, repo_name, repo_branch)
     
     data = {}
     data['author'] = repo_author
@@ -146,40 +145,41 @@ def get_repo(repo_author, repo_name):
 
     return jsonify(data)
 
-@app.route('/api/<repo_author>/<repo_name>/file', methods=['POST'])
-def add_file(repo_author, repo_name):
-    file_map = get_file_map(repo_author, repo_name)
+@app.route('/api/<repo_author>/<repo_name>/<repo_branch>/file', methods=['POST'])
+def add_file(repo_author, repo_name, repo_branch):
+    file_map = get_file_map(repo_author, repo_name, repo_branch)
     file_info = request.json
     file_map.add_file(file_info['path'], file_info['name'])
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
-@app.route('/api/<repo_author>/<repo_name>/file', methods=['DELETE'])
-def remove_file(repo_author, repo_name):
-    file_map = get_file_map(repo_author, repo_name)
+@app.route('/api/<repo_author>/<repo_name>/<repo_branch>/file', methods=['DELETE'])
+def remove_file(repo_author, repo_name, repo_branch):
+    file_map = get_file_map(repo_author, repo_name, repo_branch)
     file_info = request.json
     file_map.remove_file(file_info['file_id'])
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
-@app.route('/api/<repo_author>/<repo_name>/edge', methods=['POST'])
-def add_edge(repo_author, repo_name):
-    file_map = get_file_map(repo_author, repo_name)
+@app.route('/api/<repo_author>/<repo_name>/<repo_branch>/edge', methods=['POST'])
+def add_edge(repo_author, repo_name, repo_branch):
+    file_map = get_file_map(repo_author, repo_name, repo_branch)
     edge = request.json
     if not file_map.get_file(edge['source']) or not file_map.get_file(edge['target']):
         return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
 
+    # TODO check edge already exists
     file_map.edges.append((edge['source'], edge['target']))
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
-@app.route('/api/<repo_author>/<repo_name>/edge', methods=['DELETE'])
-def remove_edge(repo_author, repo_name):
-    file_map = get_file_map(repo_author, repo_name)
+@app.route('/api/<repo_author>/<repo_name>/<repo_branch>/edge', methods=['DELETE'])
+def remove_edge(repo_author, repo_name, repo_branch):
+    file_map = get_file_map(repo_author, repo_name, repo_branch)
     edge = request.json
     file_map.edges.remove((edge['source'], edge['target']))
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
-@app.route('/api/<repo_author>/<repo_name>/file/<file_id>/tag/<tag>', methods=['PUT'])
-def set_file_tag(repo_author, repo_name, file_id, tag):
-    file_map = get_file_map(repo_author, repo_name)
+@app.route('/api/<repo_author>/<repo_name>/<repo_branch>/file/<file_id>/tag/<tag>', methods=['PUT'])
+def set_file_tag(repo_author, repo_name, repo_branch, file_id, tag):
+    file_map = get_file_map(repo_author, repo_name, repo_branch)
     file = file_map.get_file(int(file_id))
     if not file:
         return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
@@ -187,9 +187,9 @@ def set_file_tag(repo_author, repo_name, file_id, tag):
     file.tag = tag
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
-@app.route('/api/<repo_author>/<repo_name>/tag/<tag>/color/<color_hex>', methods=['PUT'])
-def set_tag_color(repo_author, repo_name, tag, color_hex):
-    file_map = get_file_map(repo_author, repo_name)
+@app.route('/api/<repo_author>/<repo_name>/<repo_branch>/tag/<tag>/color/<color_hex>', methods=['PUT'])
+def set_tag_color(repo_author, repo_name, repo_branch, tag, color_hex):
+    file_map = get_file_map(repo_author, repo_name, repo_branch)
     file_map.tag_colors[tag] = Color(color_hex)
     return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
 
