@@ -1,23 +1,50 @@
-<!DOCTYPE HTML>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="/static/graph-creator.css" />
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home Page</title>
+
+<!-- Bootstrap -->
+<link rel="stylesheet" type="text/css" href="../static/bootstrap.css">
+<!--Main styles-->
+<link rel="stylesheet" type="text/css" href="../static/main.css">
+<!--fonts-->
+<link rel="stylesheet" type="text/css" href="../static/font-awesome.css">
 </head>
-
-<body>
-  <div id="graph">
-    <div id="toolbox">
-      <input type="file" id="hidden-file-upload">
-      <input id="upload-input" type="image" title="upload graph" src="upload-icon.png" alt="upload graph"> 
-      <input type="image" id="download-input" title="download graph" src="download-icon.png" alt="download graph">
-      <input type="image" id="delete-graph" title="delete graph" src="trash-icon.png" alt="delete graph">
+<body class="promo">
+  <!-- Site Overlay -->
+  <div class="site-overlay"></div>
+  <div id="container">
+    <div class="top_promo_block" id="promo_head">
+      <div class="start_descrition">
+        <h1>welcome to Struct!<span></span></h1>
+        <span>Visualize and dankify your code. Coded by Facebook Intern Jonathan Chen</span>
+        <div class="search_promo">
+          <div class="input-group">
+            <input type="text" class="form-control" aria-label="...">
+            <div class="input-group-btn btn_promo_search">
+              <button onclick="location.href='/visualization';" type="button" class="btn btn-success">Search</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <script src="//d3js.org/d3.v3.js" charset="utf-8"></script>
-  <script src="//cdn.jsdelivr.net/filesaver.js/0.1/FileSaver.min.js"></script>
-  <script src="/static/graph-creator.js"></script>
+
+
+<script src="../static/jquery.min.js"></script>
+<!--Other main scripts-->
+<script src="../static/all_scr.js"></script>
+<!--Bootstrap js-->  
+<script src="../static/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+"use strict";
+setHeiHeight(); 
+$(window).resize( setHeiHeight ); 
+</script>
+
 </body>
-
 </html>
