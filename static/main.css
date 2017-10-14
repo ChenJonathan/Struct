@@ -242,7 +242,7 @@ body.inner_page .bg_parallax {
     -vendor-animation-iteration-count: 2;
 }
 
-.start_descrition {
+.start_description {
     z-index: 9;
     text-align: center;
     position: absolute;
@@ -254,15 +254,14 @@ body.inner_page .bg_parallax {
     white-space: normal;
 }
 
-.start_descrition h1 {
+.start_description h1 {
     font-size: 50px;
-    text-transform: uppercase;
     font-weight: 300;
     font-family: 'Roboto', sans-serif;
     color: #ffffff;
 }
 
-.start_descrition h1 span {
+.start_description h1 span {
     display: block;
     width: 150px;
     height: 1px;
@@ -270,7 +269,7 @@ body.inner_page .bg_parallax {
     margin: 40px auto;
 }
 
-.start_descrition span {
+.start_description span {
     font-family: 'Roboto', sans-serif;
     font-size: 22px;
     font-weight: 100;
