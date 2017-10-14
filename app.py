@@ -48,8 +48,8 @@ class FileMap:
 			if edge[0] == file_id or edge[1] == file_id:
 				self.edges.remove(edge)
 
-# Map of repos to file map objects
-repo_map = {}
+repo_map = {} # (repo_path, repo_name, repo_branch) -> file_map
+code_map = {} # (repo_path, repo_name, repo_branch) -> file_id -> ([class decs], [class refs], [func decs], [func refs])
 
 def init_file_map(repo_author, repo_name, repo_branch) :
 	repo_map[(repo_author, repo_name, repo_branch)] = FileMap(repo_author, repo_name, repo_branch)
@@ -105,6 +105,17 @@ def get_file_map(repo_author, repo_name, repo_branch):
 	if not repo in repo_map:
 		init_file_map(repo_author, repo_name, repo_branch)
 	return repo_map[repo]
+
+#############################
+# Language-Specific Parsers #
+#############################
+
+def parse_c_sharp(code):
+    a = [] # Class decs
+    b = [] # Class refs
+    c = [] # Func decs
+    d = [] # Func refs
+    return (a, b, c, d)
 
 ###########
 # Routing #
