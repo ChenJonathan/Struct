@@ -24,10 +24,18 @@ class FileMap:
         return self.files[file_id]
 
     def add_file(self, path, name):
-        pass
+        file = File(path, name)
+        index = 0
+        while index < len(self.files) and self.files[index] != None:
+            index += 1
+        self.files.insert(index, file)
 
     def remove_file(self, file_id):
-        pass
+        self.files[file_id] = None
+        for edge in self.edges:
+            # TODO improve efficiency
+            if edge[0] == file_id or edge[1] == file_id:
+                self.edges.remove(edge)
 
 # Map of repos to file map objects
 repo_map = {}
@@ -46,13 +54,13 @@ def get_file_map(repo_author, repo_name):
 # Routing #
 ###########
 
-@app.route('/home')
-def index():
+@app.route('/')
+def route_index():
     return render_template('index.html', title='Index')
 
-@app.route('/graph')
-def index():
-    return render_template('index.html', title='Index')
+@app.route('/struct')
+def route_struct():
+    return render_template("graph.html", title = "Struct Graph")
 
 @app.route('/api/<repo_author>/<repo_name>')
 def get_repo(repo_author, repo_name):
@@ -94,10 +102,6 @@ def set_file_tag(repo_author, repo_name, file_id, tag):
 def set_tag_color(repo_author, repo_name, tag, color_hex):
     file_map = get_file_map(repo_author, repo_name)
     file_map.tag_colors[tag] = Color(color_hex)
-
-@app.route('/visualization')
-def graph():
-    return render_template("graph.html", title = "Struct Graph")
 
 if __name__ == "__main__":
     app.run(debug=True)
