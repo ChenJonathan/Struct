@@ -41,6 +41,27 @@ body{
     cursor: pointer;
 }
 
+#legend{
+    position: absolute;
+    top: 35%;
+    right: 0;
+    margin-right: 1em;
+    border: 2px solid #EEEEEE;
+    display: inline-block;        
+    border-radius: 5px;
+    padding: 1em;
+    z-index: 5;
+}
+
+#legend input{
+    width: 30px;
+    opacity: 0.4;
+}
+#legend input:hover{
+    opacity: 1;
+    cursor: pointer;
+}
+
 #hidden-file-upload{
     display: none;
 }

@@ -522,7 +522,9 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     paths.exit().remove();
 
     // update existing nodes
-    thisGraph.circles = thisGraph.circles.data(thisGraph.nodes, function(d){ return d.id;});
+    thisGraph.circles = thisGraph.circles.data(thisGraph.nodes, function(d){    
+      console.log("ID: " + d.id);
+      return d.id;});
     thisGraph.circles.attr("transform", function(d){return "translate(" + d.x + "," + d.y + ")";});
 
     // add new nodes
@@ -548,7 +550,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
       .call(thisGraph.drag);
 
     newGs.append("circle")
-      .attr("r", String(consts.nodeRadius));
+      .attr("r", String(consts.nodeRadius))
+      .attr('fill', 'steelblue');      
 
     newGs.each(function(d){
       thisGraph.insertTitleLinebreaks(d3.select(this), d.title);
@@ -594,7 +597,6 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   var nodes = [];
   var edges = [];
 
-
   /** MAIN SVG **/
   var svg = d3.select(settings.appendElSpec).append("svg")
         .attr("width", width)
@@ -602,4 +604,17 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   var graph = new GraphCreator(svg, nodes, edges);
       graph.setIdCt(2);
   graph.updateGraph();
+  
+  setInterval(function() {
+    console.log(thisGraph.circles);    
+  }, 3000);
+
+  d3.selectAll('.conceptG').selectAll('circle')
+  .on('click', function() {
+    console.log("Click registered properly");
+  });
+
 })(window.d3, window.saveAs, window.Blob);
+
+
+
