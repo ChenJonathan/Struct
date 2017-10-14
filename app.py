@@ -29,6 +29,7 @@ class FileMap:
         while index < len(self.files) and self.files[index] != None:
             index += 1
         self.files.insert(index, file)
+        return index
 
     def remove_file(self, file_id):
         self.files[file_id] = None
@@ -60,13 +61,41 @@ def route_index():
 
 @app.route('/struct')
 def route_struct():
-    return render_template("graph.html", title = "Struct Graph")
+    return render_template('graph.html', title='Struct Graph')
 
 @app.route('/api/<repo_author>/<repo_name>')
 def get_repo(repo_author, repo_name):
     file_map = get_file_map(repo_author, repo_name)
-    # TODO jsonify
-    return file_map
+    
+    data = {}
+    data['author'] = repo_author
+    data['name'] = repo_name
+
+    data['files'] = []
+    for file_id, file in enumerate(file_map.files):
+        if file != None:
+            data['files'].append({
+                'id': file_id,
+                'path': file.path,
+                'name': file.name,
+                'tag': file.tag
+            })
+
+    data['edges'] = []
+    for source, target in file_map.edges:
+        data['edges'].append({
+            'source': source,
+            'target': target
+        })
+
+    data['tag_colors'] = []
+    for key, value in file_map.items():
+        data['tag_colors'].append({
+            'tag': key,
+            'color': value.hex_l
+        })
+
+    return jsonify(data)
 
 @app.route('/api/<repo_author>/<repo_name>/file', method='POST')
 def add_file(repo_author, repo_name):
@@ -77,8 +106,8 @@ def add_file(repo_author, repo_name):
 @app.route('/api/<repo_author>/<repo_name>/file', method='DELETE')
 def remove_file(repo_author, repo_name):
     file_map = get_file_map(repo_author, repo_name)
-    file_id = request.json
-    file_map.remove_file(file_id)
+    file_info = request.json
+    file_map.remove_file(file_info['file_id'])
 
 @app.route('/api/<repo_author>/<repo_name>/edge', method='POST')
 def add_edge(repo_author, repo_name):
