@@ -549,14 +549,14 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
       })
       .call(thisGraph.drag);
 
-
     // add listeners for selection and hovering
     newGs.append("circle")
       .attr("r", String(consts.nodeRadius))
-      .style("fill", "red")
-      .on("click", function () {
-        console.log("clicked");
-        d3.select(this).style("fill", "magenta");
+      .style("fill", "#4dd0e2")
+      .on("contextmenu", function () {
+        d3.event.preventDefault();        
+        var currColor = d3.select(this).style("fill").toString();
+        d3.select(this).style("fill", nextColor(d3.rgb(currColor).toString()));
       })
       .on("mouseover", function () {
         d3.select(this).classed("hover", true);
@@ -630,3 +630,17 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
 //       console.log("test");
 //     })
 // });
+
+function nextColor(colorHex) {
+  if (colorHex === '#4dd0e2') { //blue -> yellow
+    return '#ffb74e';
+  } else if (colorHex === '#ffb74e') { //yellow -> red
+    return '#f07677';
+  } else if (colorHex === '#f07677') { //red -> green
+    return '#81c683';
+  } else if (colorHex === '#81c683') { //green -> purple
+    return '#6b6ee9';
+  } else { //purple -> blue
+    return '#4dd0e2';
+  }
+}
