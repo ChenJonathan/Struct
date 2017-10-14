@@ -71,6 +71,9 @@ def init_file_map(repo_author, repo_name):
     # check if file is legit TODO
     def check_file_content(base, path) :
         response = requests.get(base + path).text
+        soup = BeautifulSoup(response)
+        for item in soup.find_all('div', class_='blob-wrapper data type-text') :
+        	return False
         return True
 
     # create map by performing dfs search on root Github directory
