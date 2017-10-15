@@ -48,74 +48,91 @@ class FileMap:
 			if edge[0] == file_id or edge[1] == file_id:
 				self.edges.remove(edge)
 
+#############################
+# Language-Specific Parsers #
+#############################
+
+def parse_c_sharp(code):
+	a = [] # Class decs
+	b = [] # Class refs
+	c = [] # Func decs
+	d = [] # Func refs
+	return (a, b, c, d)
+
+###################
+# Persistent Data #
+###################
+
 repo_map = {} # (repo_path, repo_name, repo_branch) -> file_map
 code_map = {} # (repo_path, repo_name, repo_branch) -> file_id -> ([class decs], [class refs], [func decs], [func refs])
 
-def init_file_map(repo_author, repo_name, repo_branch) :
-	repo_map[(repo_author, repo_name, repo_branch)] = FileMap(repo_author, repo_name, repo_branch)
-	ignore_list = []
+language_map = {
+	'.cs': parse_c_sharp,
+	'.py': parse_c_sharp
+}
 
-	# return list of file paths in a directory
-	def get_list(url) :
+ext_whitelist = set()
+ext_blacklist = set()
+
+def init_file_map(repo_author, repo_name, repo_branch):
+	repo_map[(repo_author, repo_name, repo_branch)] = FileMap(repo_author, repo_name, repo_branch)
+	code_map[(repo_author, repo_name, repo_branch)] = {}
+
+	# Get list of file paths in a directory
+	def get_list(html):
 		ret_list = []
-		response = requests.get(url).text
-		soup = BeautifulSoup(response, 'html.parser')
-		for link in soup.find_all('a') :
+		soup = BeautifulSoup(html, 'html.parser')
+		for link in soup.find_all('a'):
 			linkparent = link.parent
-			if (linkparent.name == 'span' and linkparent.parent.name == 'td') :
+			if (linkparent.name == 'span' and linkparent.parent.name == 'td'):
 				link_list = link.get('href')
-				if '/commit/' not in link_list :
+				if '/commit/' not in link_list:
 					ret_list.append(link_list)
 		return ret_list
 
-	# check if file is legit
-	def check_file_content(base, path) :
-		if any(path.endswith(ext) for ext in ignore_list) :
+	# Checks to see if a blob file is a code file
+	def check_file_content(ext, html):
+		if ext in ext_whitelist:
+			return True
+		if ext in ext_blacklist:
 			return False
-		response = requests.get(base + path).text
-		soup = BeautifulSoup(response)
-		for item in soup.find_all('div', class_='blob-wrapper data type-text') :
-			ignore_list.append("."+path.rsplit('.', 1)[-1])
+		soup = BeautifulSoup(html, 'html.parser')
+		for item in soup.find_all('div', class_='blob-wrapper data type-text'):
+			ext_blacklist.add(ext)
 			return False
+		ext_whitelist.add(ext)
 		return True
 
-	# create map by performing dfs search on root Github directory
-	def dfs_util(base, path, stack) :
-		if '/blob/' in (path) :
-			if check_file_content(base, path) :
-				sub_path = path.rsplit("/", 1)[0]
-				name = path.rsplit("/", 1)[1]
-				repo_map[(repo_author, repo_name, repo_branch)].add_file(sub_path, name)
-		elif '/tree/' in (path):
-			uri = base + path
-			dir_list = get_list(uri)
-			for item in dir_list :
-				stack.append(item)
-				dfs_util(base, item, stack)
-				stack.pop()
+	# Attempt to analyze the contents of a code file and add them to the code map
+	def analyze_content(path, ext, file_id):
+		content = requests.get(('https://raw.githubusercontent.com' + path).replace('/blob', '')).text
+		analysis = language_map[ext](content)
+		code_map[(repo_author, repo_name, repo_branch)][file_id] = analysis
 
-	# create repo_map
-	base = "https://github.com"
-	path = "/" + repo_author + "/" + repo_name + "/tree/" + repo_branch
-	stack = []
-	dfs_util(base, path, stack)
+	# Recurse through the tree, saving files as persistent data
+	def github_dfs(path):
+		base = 'https://github.com'
+		html = requests.get(base + path).text
+		if '/tree/' in path:
+			for child in get_list(html):
+				github_dfs(child)
+		else:
+			ext = '.' + path.rsplit('.', 1)[-1]
+			if check_file_content(ext, html):
+				folder, name = path.rsplit('/', 1)
+				file_id = repo_map[(repo_author, repo_name, repo_branch)].add_file(folder, name)
+				if ext in language_map:
+					analyze_content(path, ext, file_id)
+
+	path = '/' + repo_author + '/' + repo_name + '/tree/' + repo_branch
+	github_dfs(path)
+	# TODO create links using analysis
 
 def get_file_map(repo_author, repo_name, repo_branch):
 	repo = (repo_author, repo_name, repo_branch)
 	if not repo in repo_map:
 		init_file_map(repo_author, repo_name, repo_branch)
 	return repo_map[repo]
-
-#############################
-# Language-Specific Parsers #
-#############################
-
-def parse_c_sharp(code):
-    a = [] # Class decs
-    b = [] # Class refs
-    c = [] # Func decs
-    d = [] # Func refs
-    return (a, b, c, d)
 
 ###########
 # Routing #
