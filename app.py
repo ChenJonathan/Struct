@@ -77,6 +77,8 @@ ext_blacklist = set()
 def init_file_map(repo_author, repo_name, repo_branch):
 	repo_map[(repo_author, repo_name, repo_branch)] = FileMap(repo_author, repo_name, repo_branch)
 	code_map[(repo_author, repo_name, repo_branch)] = {}
+	file_map = repo_map[(repo_author, repo_name, repo_branch)]
+	analysis_map = code_map[(repo_author, repo_name, repo_branch)]
 
 	# Get list of file paths in a directory
 	def get_list(html):
@@ -106,8 +108,7 @@ def init_file_map(repo_author, repo_name, repo_branch):
 	# Attempt to analyze the contents of a code file and add them to the code map
 	def analyze_content(path, ext, file_id):
 		content = requests.get(('https://raw.githubusercontent.com' + path).replace('/blob', '')).text
-		analysis = language_map[ext](content)
-		code_map[(repo_author, repo_name, repo_branch)][file_id] = analysis
+		analysis_map[file_id] = language_map[ext](content)
 
 	# Recurse through the tree, saving files as persistent data
 	def github_dfs(path):
@@ -120,13 +121,32 @@ def init_file_map(repo_author, repo_name, repo_branch):
 			ext = '.' + path.rsplit('.', 1)[-1]
 			if check_file_content(ext, html):
 				folder, name = path.rsplit('/', 1)
-				file_id = repo_map[(repo_author, repo_name, repo_branch)].add_file(folder, name)
+				file_id = file_map.add_file(folder, name)
 				if ext in language_map:
 					analyze_content(path, ext, file_id)
 
 	path = '/' + repo_author + '/' + repo_name + '/tree/' + repo_branch
 	github_dfs(path)
-	# TODO create links using analysis
+
+	# Create links using code analysis
+	for source_id, source_analysis in analysis_map.items():
+		for class_dec in source_analysis[0]:
+			for ref_id, ref_analysis in analysis_map.items():
+				if source_id == ref_id:
+					continue
+				if class_dec in ref_analysis[1]:
+					edge = (ref_id, source_id)
+					if edge not in file_map.edges:
+						file_map.edges.append(edge)
+	for source_id, source_analysis in analysis_map.items():
+		for func_dec in source_analysis[2]:
+			for ref_id, ref_analysis in analysis_map.items():
+				if source_id == ref_id:
+					continue
+				if func_dec in ref_analysis[3]:
+					edge = (ref_id, source_id)
+					if edge not in file_map.edges:
+						file_map.edges.append(edge)
 
 def get_file_map(repo_author, repo_name, repo_branch):
 	repo = (repo_author, repo_name, repo_branch)
@@ -183,7 +203,6 @@ def get_repo(repo_author, repo_name, repo_branch):
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/file', methods=['POST'])
 def add_file(repo_author, repo_name, repo_branch):
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
-	print('Map ' + str(file_map))
 	file_info = request.json
 	file_map.add_file(file_info['path'], file_info['name'])
 	return json.dumps({'success': True})
@@ -197,7 +216,6 @@ def remove_file(repo_author, repo_name, repo_branch):
 
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/edge', methods=['POST'])
 def add_edge(repo_author, repo_name, repo_branch):
-	print('Request ' + str(request.json))
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
 	edge = request.json
 	edge = (edge['source'], edge['target'])
