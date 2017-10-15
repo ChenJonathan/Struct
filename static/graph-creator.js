@@ -155,6 +155,7 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
               };
             });
             thisGraph.edges = newEdges;
+            // console.log(edges);
             thisGraph.updateGraph();
           } catch (err) {
             window.alert("Error parsing uploaded file\nerror message: " + err.message);
@@ -495,6 +496,7 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
       consts = thisGraph.consts,
       state = thisGraph.state;
 
+      
     thisGraph.paths = thisGraph.paths.data(thisGraph.edges, function (d) {
       return String(d.source.id) + "+" + String(d.target.id);
     });
@@ -527,7 +529,6 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
     // remove old links
 
     var oldPaths = paths.exit().remove();
-    console.log(oldPaths);
     for (var i = 0; i < oldPaths.data().length; i++) {
       if (typeof oldPaths.data()[i] !== 'undefined') {
         deleteEdge(oldPaths.data()[i].source, oldPaths.data()[i].target);
@@ -561,7 +562,6 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
       .call(thisGraph.drag);
 
     // add listeners for selection and hovering
-    console.log(newGs);
     newGs.append("circle")
       .attr("r", String(consts.nodeRadius))
       .style("fill", function () {
@@ -650,7 +650,19 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
 
       // initial node data
       var nodes = data.files;
-      var edges = data.edges;
+
+      var newEdges = data.edges;
+      newEdges.forEach(function (e, i) {
+        newEdges[i] = {
+          source: nodes.filter(function (n) { return n.id == e.source; })[0],
+          target: nodes.filter(function (n) { return n.id == e.target; })[0]
+        };
+      });
+
+      var edges = newEdges;
+
+      console.log(edges);
+      
 
       /** MAIN SVG **/
       var svg = d3.select(settings.appendElSpec).append("svg")
