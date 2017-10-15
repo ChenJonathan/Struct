@@ -2,16 +2,6 @@
 var apiRoute = '/api/' + sessionStorage.repoAuthor + '/' 
     + sessionStorage.repoName + '/' + sessionStorage.repoBranch;
 
-function getAllNodes() {
-    $.ajax({
-        type: 'GET',
-        url: apiRoute,
-        dataType: 'json',
-        success: function(data) {
-            console.log(data);
-        }
-    });
-}
 
 function deleteNode(nodeID) {
     $.ajax({
@@ -85,12 +75,12 @@ function setTagColor(tag, colorHex) {
 }
 
 
-$(function() {
-    console.log('starting now');
-    getAllNodes();
-    deleteNode(4);
-    addEdge(3,6);
-    setNodeTag(4, 'testtag');
-    setTagColor('testtag', '%234e0550');
-});
+// $(function() {
+//     console.log('starting now');
+//     // getGraphInfo();
+//     // deleteNode(4);
+//     // addEdge(3,6);
+//     // setNodeTag(4, 'testtag');
+//     // setTagColor('testtag', '%234e0550');
+// });
 
