@@ -183,52 +183,54 @@ def get_repo(repo_author, repo_name, repo_branch):
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/file', methods=['POST'])
 def add_file(repo_author, repo_name, repo_branch):
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
+	print('Map ' + str(file_map))
 	file_info = request.json
 	file_map.add_file(file_info['path'], file_info['name'])
-	return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
+	return json.dumps({'success': True})
 
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/file', methods=['DELETE'])
 def remove_file(repo_author, repo_name, repo_branch):
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
 	file_info = request.json
 	file_map.remove_file(file_info['file_id'])
-	return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
+	return json.dumps({'success': True})
 
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/edge', methods=['POST'])
 def add_edge(repo_author, repo_name, repo_branch):
+	print('Request ' + str(request.json))
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
 	edge = request.json
 	edge = (edge['source'], edge['target'])
 	if not file_map.get_file(edge[0]) or not file_map.get_file(edge[1]):
-		return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
+		return json.dumps({'success': False})
 
 	if edge in file_map.edges:
-		return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
+		return json.dumps({'success': False})
 	file_map.edges.append(edge)
-	return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
+	return json.dumps({'success': True})
 
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/edge', methods=['DELETE'])
 def remove_edge(repo_author, repo_name, repo_branch):
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
 	edge = request.json
 	file_map.edges.remove((edge['source'], edge['target']))
-	return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
+	return json.dumps({'success': True})
 
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/file/<file_id>/tag/<tag>', methods=['PUT'])
 def set_file_tag(repo_author, repo_name, repo_branch, file_id, tag):
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
 	file = file_map.get_file(int(file_id))
 	if not file:
-		return json.dumps({'success': False}, 400, {'ContentType': 'application/json'})
+		return json.dumps({'success': False})
 
 	file.tag = tag
-	return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
+	return json.dumps({'success': True})
 
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>/tag/<tag>/color/<color_hex>', methods=['PUT'])
 def set_tag_color(repo_author, repo_name, repo_branch, tag, color_hex):
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
 	file_map.tag_colors[tag] = Color(color_hex)
-	return json.dumps({'success': True}, 200, {'ContentType': 'application/json'})
+	return json.dumps({'success': True})
 
 if __name__ == "__main__":
 	app.run(debug=True)
