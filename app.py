@@ -83,9 +83,9 @@ def parse_java(code):
 	func_decs = set()
 	func_refs = set()
 	for name in re.findall(" +class +.*", code):
-		reply = re.search("(?<=class ).*", name)
-		#if reply :
-			#class_decs.add(reply.group().split[0].strip())
+		reply = re.search("(?<=class )(.*?)(?=\ )", name)
+		if reply :
+			class_decs.add(reply.group().strip())
 	for name in re.findall("new +.*", code):
 		reply = re.search("(?<=new )(.*?)((?=\()|(?=\[)|(?=\{)|(?=\.))", name)
 		if reply:
@@ -142,12 +142,12 @@ def init_file_map(repo_author, repo_name, repo_branch):
 	def get_list(html):
 		ret_list = []
 		soup = BeautifulSoup(html, 'html.parser')
-		for link in soup.find_all('a'):
-			linkparent = link.parent
-			if (linkparent.name == 'span' and linkparent.parent.name == 'td'):
-				link_list = link.get('href')
-				if '/commit/' not in link_list:
-					ret_list.append(link_list)
+		for file_tree in soup.find_all('table', class_='files js-navigation-container js-active-navigation-container') :
+			for tbody in file_tree.find_all('tbody') :
+				for link in tbody.find_all('a') :
+					link_list = link.get('href')
+					if '/commit/' not in link_list :
+						ret_list.append(link_list)
 		return ret_list
 
 	# Checks to see if a blob file is a code file
@@ -171,7 +171,10 @@ def init_file_map(repo_author, repo_name, repo_branch):
 	# Recurse through the tree, saving files as persistent data
 	def github_dfs(path):
 		base = 'https://github.com'
-		html = requests.get(base + path).text
+		try:
+			html = requests.get(base + path).text
+		except:
+			return
 		if '/tree/' in path:
 			for child in get_list(html):
 				github_dfs(child)
@@ -227,7 +230,6 @@ def route_struct():
 @app.route('/api/<repo_author>/<repo_name>/<repo_branch>')
 def get_repo(repo_author, repo_name, repo_branch):
 	file_map = get_file_map(repo_author, repo_name, repo_branch)
-	
 	data = {}
 	data['author'] = repo_author
 	data['name'] = repo_name
