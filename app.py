@@ -54,67 +54,67 @@ class FileMap:
 #############################
 
 def parse_python(code):
-    class_decs = set()
-    class_refs = set()
-    func_decs = set()
-    func_refs = set()
-    for name in re.findall("class .* *:", code) :
-    	reply = re.search("(?<=class )(.*)[^ :]", name)
-    	if reply :
-    		class_decs.add(reply.group().strip())
-	for name in re.findall("import *.*", code) :
+	class_decs = set()
+	class_refs = set()
+	func_decs = set()
+	func_refs = set()
+	for name in re.findall("class .* *:", code):
+		reply = re.search("(?<=class )(.*)[^ :]", name)
+		if reply:
+			class_decs.add(reply.group().strip())
+	for name in re.findall("import *.*", code):
 		reply = re.search("(?<=import ).*", name)
-		if reply :
-			for i in reply.group().split(',') :
+		if reply:
+			for i in reply.group().split(','):
 				class_refs.add(i.strip())
-    for name in re.findall("def .*\(.*\) *:", code) :
-    	reply = re.search("(?<=def )(.*)(?=\()", name)
-    	if reply : 
-    		func_decs.add(reply.group().strip())
-    for name in re.findall("\..* *\(.*\)", code) :
-    	reply = re.search("(?<=\.)(.*)(?=\()", name)
-    	if reply :
-    		func_refs.add(reply.group().strip())
-    return (class_decs, class_refs, func_decs, func_refs)
+	for name in re.findall("def .*\(.*\) *:", code):
+		reply = re.search("(?<=def )(.*)(?=\()", name)
+		if reply: 
+			func_decs.add(reply.group().strip())
+	for name in re.findall("\..* *\(.*\)", code):
+		reply = re.search("(?<=\.)(.*)(?=\()", name)
+		if reply:
+			func_refs.add(reply.group().strip())
+	return (class_decs, class_refs, func_decs, func_refs)
 
 def parse_java(code):
-    class_decs = set()
-    class_refs = set()
-    func_decs = set()
-    func_refs = set()
-    for name in re.findall(" +class +.*", code) :
-    	reply = re.search("(?<=class ).*", name)
-    	#if reply :
-    		#class_decs.add(reply.group().split[0].strip())
-    for name in re.findall("new +.*", code) :
-    	reply = re.search("(?<=new )(.*?)((?=\()|(?=\[)|(?=\{)|(?=\.))", name)
-    	if reply :
-    		class_refs.add(reply.group().strip())
-    for name in re.findall("(public|private)(.*?\(.*?.*\))", code) :
-    	reply = re.search("(.*)(?=\()", ''.join(name))
-    	if reply :
-    		func_decs.add(reply.group().strip().split()[-1])
-    for name in re.findall("\..* *\(.*\)", code) :
-    	reply = re.search("(?<=\.)(.*?)(?=\()", name)
-    	if reply :
-    		func_refs.add(reply.group().strip())
-    return(class_decs, class_refs, func_decs, func_refs)
+	class_decs = set()
+	class_refs = set()
+	func_decs = set()
+	func_refs = set()
+	for name in re.findall(" +class +.*", code):
+		reply = re.search("(?<=class ).*", name)
+		#if reply :
+			#class_decs.add(reply.group().split[0].strip())
+	for name in re.findall("new +.*", code):
+		reply = re.search("(?<=new )(.*?)((?=\()|(?=\[)|(?=\{)|(?=\.))", name)
+		if reply:
+			class_refs.add(reply.group().strip())
+	for name in re.findall("(public|private)(.*?\(.*?.*\))", code):
+		reply = re.search("(.*)(?=\()", ''.join(name))
+		if reply:
+			func_decs.add(reply.group().strip().split()[-1])
+	for name in re.findall("\..* *\(.*\)", code):
+		reply = re.search("(?<=\.)(.*?)(?=\()", name)
+		if reply:
+			func_refs.add(reply.group().strip())
+	return(class_decs, class_refs, func_decs, func_refs)
 
 def parse_javascript(code):
-    class_decs = set()
-    class_refs = set()
-    func_decs = set()
-    func_refs = set()
-    for name in re.findall("function *.*\(.*\)", code) :
-    	reply = re.search("(?<=function )(.*?)(?=\()", name)
-    	if (reply) :
-    		func_decs.add(reply.group().strip())
-    # function calls are difficult since many are defined inline
-    for name in re.findall("\..* *\(.*\)", code) :
-    	reply = re.search("(?<=\.)(.*?)(?=\()", name)
-    	if reply :
-    		func_refs.add(reply.group().strip())
-    return(class_decs, class_refs, func_decs, func_refs)
+	class_decs = set()
+	class_refs = set()
+	func_decs = set()
+	func_refs = set()
+	for name in re.findall("function *.*\(.*\)", code):
+		reply = re.search("(?<=function )(.*?)(?=\()", name)
+		if (reply):
+			func_decs.add(reply.group().strip())
+	# function calls are difficult since many are defined inline
+	for name in re.findall("\..* *\(.*\)", code):
+		reply = re.search("(?<=\.)(.*?)(?=\()", name)
+		if reply:
+			func_refs.add(reply.group().strip())
+	return(class_decs, class_refs, func_decs, func_refs)
 
 ###################
 # Persistent Data #
