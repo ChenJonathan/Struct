@@ -3,6 +3,7 @@ import json
 from colour import Color
 import requests
 from bs4 import BeautifulSoup
+import re
 
 app = Flask(__name__)
 
@@ -52,12 +53,56 @@ class FileMap:
 # Language-Specific Parsers #
 #############################
 
-def parse_c_sharp(code):
-	a = [] # Class decs
-	b = [] # Class refs
-	c = [] # Func decs
-	d = [] # Func refs
-	return (a, b, c, d)
+def parse_python(code):
+    class_decs = set() # Class decs
+    class_refs = set() # Class refs
+    func_decs = set() # Func decs
+    func_refs = set() # Func refs
+    for name in re.findall("class .* *:", code) :
+    	class_decs.add(re.search("(?<=class )(.*)[^ :]", name).group().strip())
+	for name in re.findall("import *.*", code) :
+		item = re.search("(?<=import ).*", name).group()
+		for i in item.split(',') :
+			class_refs.add(i.strip())
+    for name in re.findall("def .*\(.*\) *:", code) :
+    	func_decs.add(re.search("(?<=def )(.*)(?=\()", name).group().strip())
+    # TODO func_refs can use improvement
+    for name in re.findall("\..* *\(.*\)", code) :
+    	func_refs.add(re.search("(?<=\.)(.*)(?=\()", name).group().strip())
+    return (class_decs, class_refs, func_decs, func_refs)
+
+def parse_java(code):
+    class_decs = set() # Class decs
+    class_refs = set() # Class refs
+    func_decs = set() # Func decs
+    func_refs = set() # Func refs
+    for name in re.findall("class.*", code) :
+    	class_decs.add(name.split()[1].strip())
+    for name in re.findall("new .*", code) :
+    	class_refs.add(re.search("(?<=new )(.*?)((?=\()|(?=\[)|(?=\{)|(?=\.))", name).group().strip())
+    for name in re.findall("(public|private)(.*?\(.*? .*\))", code) :
+    	name = re.search("(.*)(?=\()", ''.join(name)).group().strip()
+    	func_decs.add(name.split()[-1])
+    for name in re.findall("\..* *\(.*\)", code) :
+    	func_refs.add(re.search("(?<=\.)(.*?)(?=\()", name).group().strip())
+    return(class_decs, class_refs, func_decs, func_refs)
+
+def parse_javascript(code):
+    class_decs = set() # Class decs
+    class_refs = set() # Class refs
+    func_decs = set() # Func decs
+    func_refs = set() # Func refs
+
+    for name in re.findall("function *.*\(.*\)", code) :
+    	reply = re.search("(?<=function )(.*?)(?=\()", name)
+    	if (reply) :
+    		func_decs.add(reply.group().strip())
+    for name in re.findall("\..* *\(.*\)", code) :
+    	func_refs.add(re.search("(?<=\.)(.*?)(?=\()", name).group().strip())
+    for i in func_refs :
+    	print(i)
+
+    return(class_decs, class_refs, func_decs, func_refs)
 
 ###################
 # Persistent Data #
@@ -67,8 +112,9 @@ repo_map = {} # (repo_path, repo_name, repo_branch) -> file_map
 code_map = {} # (repo_path, repo_name, repo_branch) -> file_id -> ([class decs], [class refs], [func decs], [func refs])
 
 language_map = {
-	'.cs': parse_c_sharp,
-	'.py': parse_c_sharp
+	'.java': parse_java,
+	'.py': parse_python,
+	'.js': parse_javascript
 }
 
 ext_whitelist = set()
