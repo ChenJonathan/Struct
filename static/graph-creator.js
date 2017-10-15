@@ -525,7 +525,14 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
       });
 
     // remove old links
-    paths.exit().remove();
+
+    var oldPaths = paths.exit().remove();
+    console.log(oldPaths);
+    for (var i = 0; i < oldPaths.data().length; i++) {
+      if (typeof oldPaths.data()[i] !== 'undefined') {
+        deleteEdge(oldPaths.data()[i].source, oldPaths.data()[i].target);
+      }
+    }
 
     // update existing nodes
     thisGraph.circles = thisGraph.circles.data(thisGraph.nodes, function (d) { return d.id; });
@@ -557,7 +564,7 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
     console.log(newGs);
     newGs.append("circle")
       .attr("r", String(consts.nodeRadius))
-      .style("fill", function() {
+      .style("fill", function () {
         if (d3.select(this).data().tag != null) {
           return tagMap.get(d3.select(this).data().tag);
         }
@@ -586,7 +593,15 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
     });
 
     // remove old nodes
-    console.log(thisGraph.circles.exit().remove());
+    var oldArray = thisGraph.circles.exit().remove();
+
+    for (var i = 0; i < oldArray.data().length; i++) {
+      if (typeof oldArray.data()[i] !== 'undefined') {
+        // console.log(oldArray.data()[i].id);
+        deleteNode(oldArray.data()[i].id);
+      }
+    }
+    // console.log(oldArray[oldArray[[0][0]]]);
   };
 
   GraphCreator.prototype.zoomed = function () {
@@ -609,50 +624,50 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
   };
 
 
-  var apiRoute = '/api/' + sessionStorage.repoAuthor + '/' 
-  + sessionStorage.repoName + '/' + sessionStorage.repoBranch;
+  var apiRoute = '/api/' + sessionStorage.repoAuthor + '/'
+    + sessionStorage.repoName + '/' + sessionStorage.repoBranch;
 
-    $.ajax({
-      type: 'GET',
-      url: apiRoute,
-      dataType: 'json',
-      success: function (data) {
+  $.ajax({
+    type: 'GET',
+    url: apiRoute,
+    dataType: 'json',
+    success: function (data) {
 
-        //Populate global variables
-        for (var i = 0; i < data.tag_colors.length; i++) {
-          tagMap[data.tag_colors[i].tag] = data.tag_colors[i].color;
-        }
-
-        /**** MAIN ****/
-        var docEl = document.documentElement,
-          bodyEl = document.getElementsByTagName('body')[0];
-
-        var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
-          height = window.innerHeight || docEl.clientHeight || bodyEl.clientHeight;
-
-        var xLoc = width / 2 - 25,
-          yLoc = 100;
-
-        // initial node data
-        var nodes = data.files;
-        var edges = data.edges;
-
-        /** MAIN SVG **/
-        var svg = d3.select(settings.appendElSpec).append("svg")
-          .attr("width", width)
-          .attr("height", height);
-
-        for (var i = 0; i < data.files.length; i ++) {
-          data.files[i].x = Math.random() * 1900;
-          data.files[i].y = Math.random() * 900;          
-        }
-
-        var graph = new GraphCreator(svg, nodes, edges);
-        graph.setIdCt(data.files.length);
-        graph.updateGraph();
-
+      //Populate global variables
+      for (var i = 0; i < data.tag_colors.length; i++) {
+        tagMap[data.tag_colors[i].tag] = data.tag_colors[i].color;
       }
-    });
+
+      /**** MAIN ****/
+      var docEl = document.documentElement,
+        bodyEl = document.getElementsByTagName('body')[0];
+
+      var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
+        height = window.innerHeight || docEl.clientHeight || bodyEl.clientHeight;
+
+      var xLoc = width / 2 - 25,
+        yLoc = 100;
+
+      // initial node data
+      var nodes = data.files;
+      var edges = data.edges;
+
+      /** MAIN SVG **/
+      var svg = d3.select(settings.appendElSpec).append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+      for (var i = 0; i < data.files.length; i++) {
+        data.files[i].x = Math.random() * 1900;
+        data.files[i].y = Math.random() * 900;
+      }
+
+      var graph = new GraphCreator(svg, nodes, edges);
+      graph.setIdCt(data.files.length);
+      graph.updateGraph();
+
+    }
+  });
 
   // setInterval(function() {
   //   console.log(thisGraph.circles);    
@@ -683,5 +698,5 @@ function nextColor(colorHex) {
 }
 
 function tagColor() {
-  
+
 }
