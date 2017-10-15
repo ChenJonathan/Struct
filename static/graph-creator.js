@@ -1,3 +1,7 @@
+//Global variables
+var tagMap = {};
+
+
 document.onload = (function (d3, saveAs, Blob, undefined) {
   "use strict";
 
@@ -184,7 +188,7 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
     ENTER_KEY: 13,
-    nodeRadius: 50
+    nodeRadius: 75
   };
 
   /* PROTOTYPE FUNCTIONS */
@@ -339,7 +343,7 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
       .append("xhtml:p")
       .attr("id", consts.activeEditId)
       .attr("contentEditable", "true")
-      .text(d.title)
+      .text(d.name)
       .on("mousedown", function (d) {
         d3.event.stopPropagation();
       })
@@ -350,8 +354,8 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
         }
       })
       .on("blur", function (d) {
-        d.title = this.textContent;
-        thisGraph.insertTitleLinebreaks(d3node, d.title);
+        d.name = this.textContent;
+        thisGraph.insertTitleLinebreaks(d3node, d.name);
         d3.select(this.parentElement).remove();
       });
     return d3txt;
@@ -550,13 +554,25 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
       .call(thisGraph.drag);
 
     // add listeners for selection and hovering
+    console.log(newGs);
     newGs.append("circle")
       .attr("r", String(consts.nodeRadius))
-      .style("fill", "#4dd0e2")
+      .style("fill", function() {
+        if (d3.select(this).data().tag != null) {
+          return tagMap.get(d3.select(this).data().tag);
+        }
+        return "#4dd0e2";
+      })
       .on("contextmenu", function () {
-        d3.event.preventDefault();        
+        d3.event.preventDefault();
         var currColor = d3.select(this).style("fill").toString();
-        d3.select(this).style("fill", nextColor(d3.rgb(currColor).toString()));
+        var newColor = nextColor(d3.rgb(currColor).toString());
+        d3.select(this).style("fill", newColor);
+        for (var tag in tagMap) {
+          if (tagMap.get(tag) == newColor) {
+            d3.select(this).data().tag = tag;
+          }
+        }
       })
       .on("mouseover", function () {
         d3.select(this).classed("hover", true);
@@ -566,11 +582,11 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
       })
 
     newGs.each(function (d) {
-      thisGraph.insertTitleLinebreaks(d3.select(this), d.title);
+      thisGraph.insertTitleLinebreaks(d3.select(this), d.name);
     });
 
     // remove old nodes
-    thisGraph.circles.exit().remove();
+    console.log(thisGraph.circles.exit().remove());
   };
 
   GraphCreator.prototype.zoomed = function () {
@@ -587,35 +603,56 @@ document.onload = (function (d3, saveAs, Blob, undefined) {
     svg.attr("width", x).attr("height", y);
   };
 
-
-
-  /**** MAIN ****/
-
   // warn the user when leaving
   window.onbeforeunload = function () {
     return "Make sure to save your graph locally before leaving :-)";
   };
 
-  var docEl = document.documentElement,
-    bodyEl = document.getElementsByTagName('body')[0];
 
-  var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
-    height = window.innerHeight || docEl.clientHeight || bodyEl.clientHeight;
+  var apiRoute = '/api/' + sessionStorage.repoAuthor + '/' 
+  + sessionStorage.repoName + '/' + sessionStorage.repoBranch;
 
-  var xLoc = width / 2 - 25,
-    yLoc = 100;
+    $.ajax({
+      type: 'GET',
+      url: apiRoute,
+      dataType: 'json',
+      success: function (data) {
 
-  // initial node data
-  var nodes = [];
-  var edges = [];
+        //Populate global variables
+        for (var i = 0; i < data.tag_colors.length; i++) {
+          tagMap[data.tag_colors[i].tag] = data.tag_colors[i].color;
+        }
 
-  /** MAIN SVG **/
-  var svg = d3.select(settings.appendElSpec).append("svg")
-    .attr("width", width)
-    .attr("height", height);
-  var graph = new GraphCreator(svg, nodes, edges);
-  graph.setIdCt(2);
-  graph.updateGraph();
+        /**** MAIN ****/
+        var docEl = document.documentElement,
+          bodyEl = document.getElementsByTagName('body')[0];
+
+        var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
+          height = window.innerHeight || docEl.clientHeight || bodyEl.clientHeight;
+
+        var xLoc = width / 2 - 25,
+          yLoc = 100;
+
+        // initial node data
+        var nodes = data.files;
+        var edges = data.edges;
+
+        /** MAIN SVG **/
+        var svg = d3.select(settings.appendElSpec).append("svg")
+          .attr("width", width)
+          .attr("height", height);
+
+        for (var i = 0; i < data.files.length; i ++) {
+          data.files[i].x = Math.random() * 1900;
+          data.files[i].y = Math.random() * 900;          
+        }
+
+        var graph = new GraphCreator(svg, nodes, edges);
+        graph.setIdCt(data.files.length);
+        graph.updateGraph();
+
+      }
+    });
 
   // setInterval(function() {
   //   console.log(thisGraph.circles);    
@@ -643,4 +680,8 @@ function nextColor(colorHex) {
   } else { //purple -> blue
     return '#4dd0e2';
   }
+}
+
+function tagColor() {
+  
 }
