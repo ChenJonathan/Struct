@@ -19,9 +19,9 @@ function deleteNode(nodeID) {
         contentType: "application/json",        
         url: apiRoute + '/file',
         dataType: 'json',
-        data: {
-            "file_id": nodeID
-        },
+        data: JSON.stringify({
+            "file_id":nodeID
+        }),
         success: function(data) {
             console.log(data);
         }
@@ -34,10 +34,10 @@ function addEdge(edgeSource, edgeTarget) {
         contentType: "application/json",        
         url: apiRoute + '/edge',
         dataType: 'json',
-        data: {
-            source: edgeSource,
-            target: edgeTarget
-        },
+        data: JSON.stringify({
+            "source": edgeSource,
+            "target": edgeTarget
+        }),
         success: function(data) {
             console.log(data);
         }
@@ -47,12 +47,13 @@ function addEdge(edgeSource, edgeTarget) {
 function deleteEdge(edgeSource, edgeTarget) {
     $.ajax({
         type: 'DELETE',
+        contentType: "application/json",        
         url: apiRoute + '/edge',
         dataType: 'json',
-        data: {
-            source: edgeSource,
-            target: edgeTarget
-        },
+        data: JSON.stringify({
+            "source": edgeSource,
+            "target": edgeTarget
+        }),
         success: function(data) {
             console.log(data);
         }
@@ -89,7 +90,6 @@ $(function() {
     getAllNodes();
     deleteNode(4);
     addEdge(3,6);
-    deleteEdge(3,6);
     setNodeTag(4, 'testtag');
     setTagColor('testtag', '%234e0550');
 });
